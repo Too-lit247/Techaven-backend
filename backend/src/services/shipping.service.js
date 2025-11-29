@@ -71,7 +71,7 @@ class ShippingService {
         const connection = await pool.getConnection();
         try {
             const [methods] = await connection.query(
-                'SELECT * FROM shipping_methods WHERE is_active = true'
+                'SELECT * FROM shipping_providers'
             );
             return methods;
         } finally {

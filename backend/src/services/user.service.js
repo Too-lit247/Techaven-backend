@@ -122,19 +122,16 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-    async getUserById(id) {
+    async getUserById(userId) {
+        console.log("user id in user contro ",userId)
         try {
             const [users] = await pool.query(`
-                SELECT u.*, 
-                       GROUP_CONCAT(DISTINCT r.name) as roles,
-                       up.full_name, up.phone, up.dob, up.locale
-                FROM auth_users u
-                LEFT JOIN auth_users_roles ur ON u.id = ur.user_id
-                LEFT JOIN auth_roles r ON ur.role_id = r.id
-                LEFT JOIN auth_user_profile up ON u.id = up.user_id
-                WHERE u.id = ?
-                GROUP BY u.id
-            `, [id]);
+                SELECT *
+                FROM auth_users
+                WHERE id = ?
+            `, [userId]);
+
+              console.log("user id in user contro ",users)
 
             if (users[0].length === 0) return null;
 
@@ -148,7 +145,7 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-       async getAllUsers() {
+   async getAllUsers() {
         console.log("Fetching all users");
         try {
             const [users] = await pool.query(`
@@ -178,13 +175,11 @@ console.log("Checking if user already exists with email:", email, "or username:"
                 UPDATE auth_user_profile
                 SET full_name = COALESCE(?, full_name),
                     phone = COALESCE(?, phone),
-                    dob = COALESCE(?, dob),
                     locale = COALESCE(?, locale)
                 WHERE user_id = ?
             `, [
                 data.full_name,
                 data.phone,
-                data.dob,
                 data.locale,
                 userId
             ]);

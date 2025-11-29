@@ -65,9 +65,7 @@ class UserController {
             });
         }
     }
-
-
-    async getProfile(req, res) {
+async getProfile(req, res) {
         try {
             const userId = req.user.id;
             const user = await userService.getUserById(userId);
@@ -89,9 +87,34 @@ class UserController {
         }
     }
 
+
+    async getUserById(req, res) {
+        try {
+            console.log("requesting user with id ", req.body.id)
+            const userId = req.body.id;
+            const user = await userService.getUserById(userId);
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'User not found'
+                });
+            }
+            res.json({
+                success: true,
+                data: user
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to fetch user'
+            });
+        }
+    }
+
     async updateProfile(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.body.user_id;
+            console.log("user to be updated ",userId)
             await userService.updateUserProfile(userId, req.body);
             res.json({
                 success: true,

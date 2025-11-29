@@ -8,8 +8,8 @@ const shopController = {
     // Get all shops
     async getShops(req, res, next) {
         try {
-            const { page = 1, limit = 10, search, category, sort } = req.query;
-            const shops = await shopService.getShops({ page, limit, search, category, sort });
+            const { page = 1, limit = 10, search, sort } = req.query;
+            const shops = await shopService.getShops({ page, limit, search, sort });
             res.json(shops);
         } catch (error) {
             next(error);
@@ -52,7 +52,7 @@ const shopController = {
             console.log("here ", req.body);
                     const shop = await shopService.createShop({
                 ...req.body,
-                ownerId: req.body.ownerId
+                seller_id : req.body.user_id
             });
             console.log("here is the shop created", shop);
             res.status(201).json(shop);

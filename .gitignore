@@ -2,7 +2,12 @@ backend/node_modules
 backend/npm-debug.log
 backend/.env
 backend/*.log
+dashboard/node_modules
+dashboard/npm-debug.log
+mobile/node_modules
+mobile/npm-debug.log
 
 .dockerignore
+
 .vscode
-./scrio
+./scripts/local.env

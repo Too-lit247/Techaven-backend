@@ -19,7 +19,10 @@ class ShippingController {
 
     async getShippingMethods(req, res) {
         try {
+            console.log("Fetching shipping methods");
             const methods = await shippingService.getShippingMethods();
+ 
+ console.log("Shipping methods retrieved:", methods);
             res.json({
                 success: true,
                 data: methods

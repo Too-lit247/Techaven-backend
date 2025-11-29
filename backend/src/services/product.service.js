@@ -47,6 +47,7 @@ class ProductService {
 
     async createProduct(productData) {
         const connection = await pool.getConnection();
+      console.log("here comes produc service", productData)
         try {
             await connection.beginTransaction();
 
@@ -68,6 +69,9 @@ class ProductService {
                 productData.is_active ?? 1
             ]);
 
+            console.log("Inserted product with ID:", productId);
+            console.log("products data ", productData);
+            
             if (productData.categories?.length) {
                 const categoryValues = productData.categories.map(cat => [productId, cat.id]);
                 await connection.query(`
@@ -79,6 +83,7 @@ class ProductService {
             await connection.commit();
             return productId;
         } catch (error) {
+            console.log(error);
             await connection.rollback();
             throw new Error('Error creating product');
         } finally {

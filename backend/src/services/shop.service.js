@@ -1,32 +1,28 @@
 import  pool  from  '../config/database.js';
 import { AppError } from '../utils/error.js';
-
+import { v4 as uuidv4 } from 'uuid';
 class ShopService {
     
       
     // Get all shops with filters and pagination
-    async getShops({ page = 1, limit = 10, search = '', address = '', sort = 'created_at' }) {
+    async getShops({ page = 1, limit = 10, search = '', business_name = '', sort = 'created_at' }) {
         const offset = (page - 1) * limit;
         const db =  await pool.getConnection();
-        let query = 'SELECT * FROM shops';
+        let query = 'SELECT * FROM catalog_sellers';
         const params = [];
 
         if (search) {
-            query += ' AND (name LIKE ? OR description LIKE ?)';
-            params.push(`%${search}%`, `%${search}%`);
+            query += ' AND (business_name LIKE ?)';
+            params.push(`%${search}%`);
         }
 
-        if (address) {
-            query += ' AND address = ?';
-            params.push(address);
-        }
 
         // Add sorting
         query += ` ORDER BY ${sort} DESC LIMIT ? OFFSET ?`;
         params.push(limit, offset);
 
         const [shops] = await db.query(query, params);
-        const total = await db.query('SELECT COUNT(shop_id) FROM shops');
+        const total = await db.query('SELECT COUNT(id) FROM catalog_sellers');
 
         return {
             shops,
@@ -39,10 +35,10 @@ class ShopService {
     }
 
     // Get single shop by ID
-    async getShopById(shopId) {
+    async getShopById(user_id) {
           const db = await pool.getConnection();
 
-        const [shop] = await db.query('SELECT * FROM shops WHERE shop_id = ?', [shopId]);
+        const [shop] = await db.query('SELECT * FROM catalog_sellers WHERE user_id = ?', [user_id]);
        
         return shop[0];
     }
@@ -79,59 +75,75 @@ class ShopService {
         console.log("shop service ...", data);
 
         const db =  await pool.getConnection();
-        const {ownerId , name,  description, address } = data;
+        const {user_id , business_name, registration_number} = data;
+        const id = uuidv4();
+        const shop = await this.getShopById(user_id);
 
-        const [result] = await db.query(`INSERT INTO shops (ownerId, name, description, address) 
-        VALUES (?, ?,?,?)`, [ownerId, name, description, address]);
-      
+        if(!shop){
+try {
             
-                      console.log("here comes the data ", result);
 
-    return this.getShopById(ownerId);
+        const [result] = await db.query(`INSERT INTO catalog_sellers (id, user_id, business_name, registration_number) 
+        VALUES (?, ?,?,?)`, [id,user_id, business_name, registration_number]);
+      
+            console.log("here comes the data ", result);
+
+        } catch (error) {
+            console.error("Error creating shop: ", error);          
+        }
+        }
+        else{
+            throw new AppError('Shop already exists for this user', 400);
+        }
+
+        
+    return this.getShopById(user_id);
     }
 
     // Update shop details
-    async updateShop(shopId, data, userId) {
-        const shop = await this.getShopById(shopId);
+    async updateShop(user_id, data) {
+        const db = await pool.getConnection();
+        const shop = await this.getShopById(user_id);
         if (!shop) {
             throw new AppError('Shop not found', 404);
         }
 
-        if (shop.seller_id !== userId) {
+        if (shop.user_id !== user_id) {
             throw new AppError('Unauthorized', 403);
         }
 
-        const { name, description, category, address } = data;
+        const { business_name, registration_number } = data;
         await db.query(
-            'UPDATE shops SET name = ?, description = ?, category = ?, address = ? WHERE id = ?',
-            [name, description, category, address, shopId]
+            'UPDATE catalog_sellers SET business_name = ?, registration_number = ? WHERE user_id = ?',
+            [business_name,registration_number, user_id]
         );
 
-        return this.getShopById(shopId);
+        return this.getShopById(user_id);
     }
 
     // Delete shop
-    async deleteShop(shopId, userId) {
-        const shop = await this.getShopById(shopId);
+    async deleteShop(user_id) {
+        const db = await pool.getConnection();
+        const shop = await this.getShopById(user_id);
         if (!shop) {
             throw new AppError('Shop not found', 404);
         }
 
-        if (shop.seller_id !== userId) {
+        if (shop.user_id !== user_id) {
             throw new AppError('Unauthorized', 403);
         }
 
-        await db.query('DELETE FROM shops WHERE id = ?', [shopId]);
+        await db.query('DELETE FROM calalog_sellers WHERE user_id = ?', [user_id]);
     }
 
     // Get shop orders
-    async getShopOrders(shopId, userId, { page = 1, limit = 10, status = '' }) {
-        const shop = await this.getShopById(shopId);
+    async getShopOrders(user_id, { page = 1, limit = 10, status = '' }) {
+        const shop = await this.getShopById(user_id);
         if (!shop) {
             throw new AppError('Shop not found', 404);
         }
 
-        if (shop.seller_id !== userId) {
+        if (shop.user_id !== user_id) {
             throw new AppError('Unauthorized', 403);
         }
 

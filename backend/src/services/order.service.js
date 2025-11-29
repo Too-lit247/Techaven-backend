@@ -1,17 +1,59 @@
 import mysql from 'mysql2/promise';
 import config from '../config/config.js';
-
+import { v4 as uuidv4 } from 'uuid';
+import ShopService from './shop.service.js';
 const pool = mysql.createPool(config.database);
 
-class OrderService {
-    async createOrder(userId, items, shippingAddress, paymentMethod) {
+
+
+
+class OrderService{
+    
+    async createOrder(user_id, items, shippingAddress, paymentMethod) {
         const connection = await pool.getConnection();
-        try {
+     let full_name = "";
+     let line1 = "0888001347"
+     console.log("creating an order for ", user_id)
+
+console.log("full name initially ", full_name)
+     try {
             await connection.beginTransaction();
 
+   const order_id = uuidv4();
             // Create order
+            //create order address
+
+console.log("order id", order_id);
+             try {
+            const [userResults] = await pool.query(`
+                SELECT *
+                FROM auth_user_profile
+                WHERE user_id = ?
+            `, [user_id]);
+            console.log("user results are", userResults);
+
+
+            if (userResults[0].length === 0) return null;
+
+            const user = userResults[0];
+            console.log("first user", user)
+            full_name = user.full_name;
+            line1 = user.phone;
+            console.log("full name is :", full_name); 
+            console.log("line one for ", line1); 
+            return full_name;
+        } catch (error) {
+            throw new Error('Failed to fetch user');
+        }
+        const order_addresses_id = uuidv4();
+
+        console.log(" order addresses id generated", order_addresses_id)
+            const [orderAddressesResults] = await connection.query(`INSERT INTO order_addresses(id,user_id, full_name, line1) VALUES (?,?,?,?)`,
+                [order_addresses_id,user_id, full_name, line1])
+            
             const [orderResult] = await connection.query(
-                `INSERT INTO orders (user_id, shipping_address, payment_method, status, created_at)
+                `INSERT INTO order_orders (id, user_id, shipping_address, payment_method, status, created
+                _at)
                  VALUES (?, ?, ?, 'pending', NOW())`,
                 [userId, JSON.stringify(shippingAddress), paymentMethod]
             );
