@@ -5,6 +5,8 @@ import categoryRoutes from './routes/category.routes.js';
 import userRoutes from './routes/user.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
 import shopRoutes from './routes/shop.routes.js';
+import shippingRoutes from './routes/shipping.routes.js';
+import orderRoutes from './routes/order.routes.js';
 
 const app = express();
 
@@ -31,6 +33,9 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/shops', shopRoutes);
+app.use('/api/shippings', shippingRoutes);
+app.use('/api/orders', orderRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

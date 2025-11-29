@@ -17,7 +17,28 @@ class OrderController {
             });
         }
     }
+async getAllOrdersPublic(req, res) {
+        try {
+            console.log('Fetching all orders - public route');
+            const { page = 1, limit = 10, status } = req.query;
+            const orders = await orderService.getAllOrders(
+                parseInt(page),
+                parseInt(limit),
+                status
+            );
+            res.json({
+                success: true,
+                data: orders
+            });
+        }
 
+        catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to fetch orders'
+            });
+        }
+    }
     async getOrder(req, res) {
         try {
             const { orderId } = req.params;

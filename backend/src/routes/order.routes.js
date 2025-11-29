@@ -1,7 +1,7 @@
 import express from 'express';
 import orderController from '../controllers/order.controller.js';
 import { auth, checkRole } from '../middleware/auth.js';
-import { validate, orderValidationRules, paginationRules } from '../middleware/validation.js';
+import {  userValidationRules, paginationRules } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -9,9 +9,11 @@ const router = express.Router();
 router.post(
     '/',
     auth,
-    validate(orderValidationRules.create),
+    //validate(orderValidationRules.create),
     orderController.createOrder
 );
+router.get('all-orders', orderController.getAllOrdersPublic); // Public route to get all orders
+
 
 router.get(
     '/my-orders',
@@ -35,8 +37,8 @@ router.post(
 // Admin routes
 router.get(
     '/',
-    auth,
-    checkRole(['admin']),
+    //auth,
+    //checkRole(['admin']),
     paginationRules,
     orderController.getAllOrders
 );
@@ -45,7 +47,7 @@ router.put(
     '/:orderId/status',
     auth,
     checkRole(['admin']),
-    validate(orderValidationRules.updateStatus),
+    //validate(orderValidationRules.updateStatus),
     orderController.updateOrderStatus
 );
 

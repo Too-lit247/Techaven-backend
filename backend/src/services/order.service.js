@@ -2,7 +2,7 @@ import mysql from 'mysql2/promise';
 import config from '../config/config.js';
 import { v4 as uuidv4 } from 'uuid';
 import ShopService from './shop.service.js';
-const pool = mysql.createPool(config.database);
+import pool from '../config/database.js';
 
 
 
@@ -265,7 +265,11 @@ console.log("order id", order_id);
     }
 
     async getAllOrders(page, limit, status) {
+
+        console.log("Fetching all orders with status:", status);
         const connection = await pool.getConnection();
+
+        console.log("Database connection established for fetching all orders", connection);
         try {
             const offset = (page - 1) * limit;
             let query = `
@@ -273,14 +277,14 @@ console.log("order id", order_id);
                     JSON_OBJECT(
                         'productId', oi.product_id,
                         'quantity', oi.quantity,
-                        'price', oi.price,
-                        'productName', p.name
+                        'price', oi.unit_price,
+                        'productName', p.title
                     )
                 ) as items
-                FROM orders o
-                JOIN users u ON o.user_id = u.id
+                FROM order_orders o
+                JOIN auth_users u ON o.buyer_id = u.id
                 JOIN order_items oi ON o.id = oi.order_id
-                JOIN products p ON oi.product_id = p.id
+                JOIN catalog_products p ON oi.product_id = p.id
             `;
             
             const params = [];
@@ -289,13 +293,13 @@ console.log("order id", order_id);
                 params.push(status);
             }
 
-            query += ' GROUP BY o.id ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
+            query += ' GROUP BY o.id ORDER BY o.placed_at DESC LIMIT ? OFFSET ?';
             params.push(limit, offset);
 
             const [orders] = await connection.query(query, params);
 
             const [totalCount] = await connection.query(
-                'SELECT COUNT(DISTINCT id) as count FROM orders' + 
+                'SELECT COUNT(DISTINCT id) as count FROM order_orders' + 
                 (status ? ' WHERE status = ?' : ''),
                 status ? [status] : []
             );
