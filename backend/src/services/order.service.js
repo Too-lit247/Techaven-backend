@@ -55,7 +55,7 @@ console.log("order id", order_id);
                 `INSERT INTO order_orders (id, user_id, shipping_address, payment_method, status, created
                 _at)
                  VALUES (?, ?, ?, 'pending', NOW())`,
-                [userId, JSON.stringify(shippingAddress), paymentMethod]
+                [user_id, JSON.stringify(shippingAddress), paymentMethod]
             );
 
             const orderId = orderResult.insertId;

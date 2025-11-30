@@ -18,6 +18,24 @@ class ProductController {
         }
     }
 
+     async getLatestProducts(req, res) {
+        console.log("Inside getLatestProducts controller");
+        try {
+            const limit = Number(req.query.limit) || 10;
+            const offset = Number(req.query.offset) || 0;
+            const products = await productService.getLatestProducts(limit, offset);
+            res.json({
+                success: true,
+                data: products
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Internal server error'
+            });
+        }
+    }
+
     async getProductById(req, res) {
         try {
             const product = await productService.getProductById(req.params.id);

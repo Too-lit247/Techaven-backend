@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 class UserService {
-    async registerUser(email, password, username, role) {
+async registerUser(email, password, username, role) {
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
@@ -78,7 +78,7 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-    async loginUser(email, password) {
+async loginUser(email, password) {
         try {
             // Get user with roles
             const [users] = await pool.query(`
@@ -122,7 +122,7 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-    async getUserById(userId) {
+async getUserById(userId) {
         console.log("user id in user contro ",userId)
         try {
             const [users] = await pool.query(`
@@ -145,7 +145,7 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-   async getAllUsers() {
+async getAllUsers() {
         console.log("Fetching all users");
         try {
             const [users] = await pool.query(`
@@ -169,7 +169,29 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-    async updateUserProfile(userId, data) {
+async deleteUser(user_id) {
+    const db = await pool.getConnection();
+    try {
+        await db.beginTransaction();
+
+        // Delete user roles
+        const result =  await db.query(
+            'DELETE FROM auth_users WHERE id = ?',
+            [user_id]
+        );
+        console.log("Deleted a user results :", result);
+    } catch (error) {
+        await db.rollback();
+        throw new Error('Failed to delete user roles');
+    } finally {
+        db.release();
+    }
+}
+        
+        
+async updateUserProfile(user_id, data) {
+
+        console.log("Updating profile for user id:", user_id, "with data:", data);
         try {
             const [result] = await pool.query(`
                 UPDATE auth_user_profile
@@ -181,8 +203,9 @@ console.log("Checking if user already exists with email:", email, "or username:"
                 data.full_name,
                 data.phone,
                 data.locale,
-                userId
+                data.user_id
             ]);
+            console.log("Update result:", result);
 
             return true;
         } catch (error) {
@@ -190,7 +213,7 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-    async changePassword(userId, oldPassword, newPassword) {
+async changePassword(userId, oldPassword, newPassword) {
         try {
             // Get current password hash
             const [users] = await pool.query(
@@ -224,7 +247,7 @@ console.log("Checking if user already exists with email:", email, "or username:"
         }
     }
 
-    async addUserRole(userId, roleName) {
+async addUserRole(userId, roleName) {
         const connection = await pool.getConnection();
       
         try {

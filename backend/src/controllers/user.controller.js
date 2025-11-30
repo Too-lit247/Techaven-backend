@@ -67,7 +67,7 @@ class UserController {
     }
 async getProfile(req, res) {
         try {
-            const userId = req.user.id;
+            const userId = req.body.user_id;
             const user = await userService.getUserById(userId);
             if (!user) {
                 return res.status(404).json({
@@ -88,10 +88,10 @@ async getProfile(req, res) {
     }
 
 
-    async getUserById(req, res) {
+async getUserById(req, res) {
         try {
-            console.log("requesting user with id ", req.body.id)
-            const userId = req.body.id;
+            console.log("requesting user with id ", req.body.user_id)
+            const userId = req.body.user_id;
             const user = await userService.getUserById(userId);
             if (!user) {
                 return res.status(404).json({
@@ -110,8 +110,7 @@ async getProfile(req, res) {
             });
         }
     }
-
-    async updateProfile(req, res) {
+async updateProfile(req, res) {
         try {
             const userId = req.body.user_id;
             console.log("user to be updated ",userId)
@@ -160,6 +159,22 @@ async getProfile(req, res) {
             });
         }
     }
-}
+async deleteUser(req, res) {
 
+        console.log("deleting user with id ", req.body.user_id)
+        try {
+            const userId = req.body.user_id;
+            await userService.deleteUser(userId);
+            res.json({
+                success: true,
+                message: 'User deleted successfully'
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: error.message || 'Failed to delete user'
+            });
+        }
+    }
+}
 export default new UserController();

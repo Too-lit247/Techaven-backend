@@ -14,6 +14,12 @@ router.get(
     cacheMiddleware(300), // Cache for 5 minutes
     productController.getAllProducts
 );
+router.get(
+    '/latest',
+    paginationRules,
+    cacheMiddleware(300), // Cache for 5 minutes
+    productController.getLatestProducts
+);
 
 router.get(
     '/search',

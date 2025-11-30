@@ -40,8 +40,8 @@ router.get(
 
 router.put(
     '/profile',
-    auth,
-    userValidationRules.updateProfile,
+    //auth,
+    //userValidationRules.updateProfile,
     userController.updateProfile
 );
 
@@ -59,5 +59,11 @@ router.post(
     checkRole(['admin']),
     userController.addRole
 );
+router.delete(
+    '/delete',
+    //auth,
+    //checkRole(['admin']),
+    userController.deleteUser
+);  
 
 export default router;

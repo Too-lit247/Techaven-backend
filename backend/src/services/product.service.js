@@ -23,6 +23,34 @@ class ProductService {
         }
     }
 
+    async getLatestProducts(limit = 10, offset = 0) {
+
+        const db = await pool.getConnection();
+        console.log("Inside getLatestProducts service");
+        try {
+            const [products] = await db.query(`
+                SELECT p.*, 
+                       GROUP_CONCAT(DISTINCT c.id, ':', c.name, ':', c.slug) as categories,
+                       GROUP_CONCAT(DISTINCT pi.id, ':', pi.url, ':', COALESCE(pi.alt_text, '')) as images
+                FROM catalog_products p
+                LEFT JOIN catalog_product_categories pc ON p.id = pc.product_id
+                LEFT JOIN catalog_categories c ON pc.category_id = c.id
+                LEFT JOIN catalog_product_images pi ON p.id = pi.product_id
+                WHERE p.is_active = 1
+                ORDER BY p.created_at DESC
+                LIMIT ? OFFSET ?
+            `, [limit, offset]);
+
+            return products.map(product => this.formatProductResponse(product));
+        } catch (error) {
+            throw new Error('Error fetching products');
+        }
+    }
+
+
+
+
+    
     async getProductById(id) {
         try {
             const [products] = await pool.query(`
@@ -178,6 +206,7 @@ class ProductService {
                 )
                 GROUP BY p.id
             `, [`%${query}%`, `%${query}%`, `%${query}%`]);
+            console.log("Search products result:", products);
 
             return products.map(product => this.formatProductResponse(product));
         } catch (error) {
